@@ -1,0 +1,28 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "logLevel": "INFO",
+  //"model": "lm-studio/qwen/qwen3-coder-30b",
+  "provider": {
+    "lm-studio": {
+      "type": "openai",
+      "options": {
+        "baseURL": "http://127.0.0.1:1234/v1"
+      },
+      "models": {
+        "qwen/qwen3-coder-30b": { 
+          "reasoningEffort": "high",
+          "textVerbosity": "low",
+          "disabled": false
+        }        
+      }
+    }
+  },
+  "permission": {
+    "skills": {
+      "*": "allow",
+      "pr-review": "allow",
+      "internal-*": "allow",
+      "experimental-*": "allow"
+    }
+  }
+}

@@ -423,7 +423,7 @@
         initTerminal() {
           const self = this;
           try {
-            this.ws = new WebSocket('ws://' + location.host + '/v1/auidEvent');
+            this.ws = new WebSocket('ws://' + location.host + '/v1/api/audit');
             this.ws.onmessage = (e) => {
               self.lines.push(e.data);
               if (self.lines.length > self.maxLines) {
@@ -464,8 +464,10 @@
           this.loading = true;
           this.controller = new AbortController();
           try {
-            const url = '/v1/chat?in=' + encodeURIComponent(text);
-            const res = await fetch(url, {
+            const res = await fetch('/v1/api/echo', {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain' },
+              body: text,
               signal: this.controller.signal,
             });
             if (res.status === 500) {

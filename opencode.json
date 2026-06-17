@@ -1,0 +1,12 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "logLevel": "INFO",
+  "permission": {
+    "skills": {
+      "*": "allow",
+      "pr-review": "allow",
+      "internal-*": "allow",
+      "experimental-*": "allow"
+    }
+  }
+}
