@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -15,9 +16,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 
-@RestController
-@RequestMapping("/v1/api")
-public class RESTController {
+@Component
+public class LogicChatEcho {
     private static final String SESSION_HTTP_CLIENT = "SESSION_HTTP_CLIENT";
 
     @Value("${spring.forward.url}")
@@ -38,46 +38,35 @@ public class RESTController {
         return httpClient;
     }
 
-    private HttpResponse<String> forwardHttpRequest (HttpClient httpClient, URI uri, String body) throws IOException, InterruptedException {
+
+    public ResponseEntity<String> forwardRequest(HttpSession session, @RequestBody String body) throws IOException, InterruptedException {
+        final URI uri = URI.create("%s:%s".formatted(forwardUrl, forwardPort));
+
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(uri)
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
 
-        return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-    }
+        HttpClient client = getHttpClientFromSession(session);
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-    // 2. POST request endpoint
-    @PostMapping("/chat")
-    public ResponseEntity<String> forwardRequest(HttpSession session, @RequestBody String body) {
-        final URI uri = URI.create("%s:%s".formatted(forwardUrl, forwardPort));
-        try {
-
-            HttpResponse<String> response = forwardHttpRequest(
-                    getHttpClientFromSession(session),
-                    uri,
-                    body
-            );
-            return ResponseEntity.status(response.statusCode()).body(response.body());
-
-        } catch (Exception e) {
-            return respond(HttpStatus.INTERNAL_SERVER_ERROR, "Error", e.getMessage());
-        }
-    }
-
-    @PostMapping("/echo")
-    public ResponseEntity<String> echoRequest(@RequestBody String input) {
-        return respond(HttpStatus.OK, "Echo", input);
+        return HttpStatus.OK.value() != response.statusCode() ?
+            simpleJsonRespond(HttpStatus.OK, "Content", response.body()) :
+            simpleJsonRespond(HttpStatus.INTERNAL_SERVER_ERROR, "Error", response.body());
     }
 
 
-    private ResponseEntity<String> respond (HttpStatus status, String key, String value) {
+    public static ResponseEntity<String> simpleJsonRespond(HttpStatus status, String key, String value) {
         String encodedValue = URLEncoder.encode(value, StandardCharsets.UTF_8);
-        String simpleSingleJSON = "{'%s':'%s'}".formatted(key,encodedValue);
+        String simpleSingleJSON = "{\"%s\":\"%s\"}".formatted(key,encodedValue);
         return ResponseEntity
                 .status(status)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(simpleSingleJSON);
+    }
+
+    public static ResponseEntity<String> simpleJsonRespond(Exception e) {
+        return simpleJsonRespond(HttpStatus.INTERNAL_SERVER_ERROR, "Error", e.getMessage());
     }
 
 

@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: webfront
+  forward:
+    url: "http://echo.free.beeceptor.com"
+    port: 80
+  listening:
+    filepath: "/path/to/your/logfile.txt"
