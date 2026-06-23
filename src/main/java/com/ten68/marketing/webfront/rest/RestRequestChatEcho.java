@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import static com.ten68.marketing.webfront.rest.LogicChatEcho.simpleJsonRespond;
-
 @RestController
 @RequestMapping("/v1/api")
 public class RestRequestChatEcho {
@@ -19,22 +17,17 @@ public class RestRequestChatEcho {
     LogicChatEcho logicChatEcho;
 
     @PostMapping("/chat")
-    public ResponseEntity<String> forwardRequest (
-            HttpSession session,
-            @RequestBody String body
-    ) {
+    public ResponseEntity<String> forwardRequest (HttpSession session, @RequestBody String body) {
         try {
-            return logicChatEcho.forwardRequest(session, body);
+            return logicChatEcho.forwardRequest(session, body).oneLineJsonRespond();
         } catch (Exception e) {
-            return simpleJsonRespond(e);
+            return (new StructResponse(e)).oneLineJsonRespond();
         }
     }
 
     @PostMapping("/echo")
-    public ResponseEntity<String> echoRequest (
-            @RequestBody String input
-    ) {
-        return simpleJsonRespond(HttpStatus.OK, "Echo", input);
+    public ResponseEntity<String> echoRequest (@RequestBody String input) {
+        return (new StructResponse(HttpStatus.OK, "Echo", input)).oneLineJsonRespond();
     }
 
 }
