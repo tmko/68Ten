@@ -24,13 +24,41 @@
     </encoder>
   </appender>
 
+  <!-- Dedicated Audit File Appender -->
+  <appender name="AUDIT_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>logs/audit.log</file>
+
+    <!-- The Marker Filter Engine -->
+    <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+      <evaluator class="ch.qos.logback.classic.boolex.OnMarkerEvaluator">
+        <marker>AUDIT</marker>
+      </evaluator>
+      <onMatch>ACCEPT</onMatch>
+      <onMismatch>DENY</onMismatch>
+    </filter>
+
+    <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+      <fileNamePattern>logs/archived/audit-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+      <maxFileSize>10MB</maxFileSize>
+      <maxHistory>30</maxHistory>
+    </rollingPolicy>
+
+    <encoder>
+      <pattern>%epoch %msg%n</pattern>
+    </encoder>
+  </appender>
+
+
+
   <logger name="com.ten68" level="INFO" additivity="false">
     <appender-ref ref="CONSOLE" />
     <appender-ref ref="FILE" />
+    <appender-ref ref="AUDIT_FILE" />
   </logger>
 
   <root level="INFO">
     <appender-ref ref="CONSOLE" />
     <appender-ref ref="FILE" />
+    <appender-ref ref="AUDIT_FILE" />
   </root>
 </configuration>

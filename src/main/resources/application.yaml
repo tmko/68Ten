@@ -8,5 +8,5 @@ spring:
     url: "http://echo.free.beeceptor.com"
     port: 80
   auditLog:
-    filepath: "./logs/webfront.log"
+    filepath: "./logs/audit.log"
 

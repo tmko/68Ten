@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static com.ten68.marketing.webfront.WebfrontApplication.AUDIT_MARKER;
+
 @Slf4j
 @RestController
 @RequestMapping
@@ -22,13 +24,17 @@ public class RestRequestChatEcho {
 
     @PostMapping(REST_CHAT)
     public ResponseEntity<String> forwardRequest (HttpSession session, @RequestBody String body) {
-        return logicChatEcho.forwardRequest(session, body).singleObjectJsonRespond();
+        log.info(AUDIT_MARKER, body);
+        ResponseEntity<String> result = logicChatEcho.forwardRequest(session, body).singleObjectJsonRespond();
+        log.info(AUDIT_MARKER, result.getBody());
+        return result;
     }
 
     @PostMapping(REST_ECHO)
     public ResponseEntity<String> echoRequest (@RequestBody String input) {
-        log.info(input);
-        return (new StructResponse(HttpStatus.OK, "Echo", input)).singleObjectJsonRespond();
+        StructResponse response = new StructResponse(HttpStatus.OK, "Echo", input);
+        log.info(AUDIT_MARKER, input);
+        return response.singleObjectJsonRespond();
     }
 
 }
