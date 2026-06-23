@@ -41,9 +41,8 @@ public class WebSocketAudit implements WebSocketMessageBrokerConfigurer {
 
     @MessageMapping(WebSocketAudit.SOCKET_PUB_ENDPOINT)
     @SendTo(WebSocketAudit.SOCKET_SUB_TOPIC)
-    public StructMessage process(StructMessage message) throws Exception {
-        logicTailAuditLog.process(StructMessage.INVALID);
-        return new StructMessage(System.currentTimeMillis(), "something here " + System.currentTimeMillis());
+    public List<StructMessage> process(StructMessage message) throws Exception {
+        return logicTailAuditLog.process(StructMessage.INVALID);
     }
 
 }
