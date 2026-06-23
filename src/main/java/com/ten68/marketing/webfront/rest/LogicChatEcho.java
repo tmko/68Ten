@@ -6,7 +6,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -35,7 +34,7 @@ public class LogicChatEcho {
     }
 
 
-    public StructResponse forwardRequest(HttpSession session, @RequestBody String body) throws IOException, InterruptedException {
+    public StructResponse forwardRequest(HttpSession session, @RequestBody String body) {
         final URI uri = URI.create("%s:%s".formatted(forwardUrl, forwardPort));
 
         HttpRequest request = HttpRequest.newBuilder()
@@ -44,14 +43,23 @@ public class LogicChatEcho {
                 .build();
 
         HttpClient client = getHttpClientFromSession(session);
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        HttpResponse<String> response = null;
 
-        return
-            HttpStatus.OK.value() != response.statusCode() ?
-            new StructResponse(HttpStatus.OK, "Content", response.body()) :
-            new StructResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Error", response.body());
+        try {
+            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            return isStatusOK(response) ?
+                            new StructResponse(HttpStatus.OK, "Content", response.body()) :
+                            new StructResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Error", response.body());
+
+        } catch (Exception e) {
+            return new StructResponse(e);
+        }
     }
 
+    private static boolean isStatusOK (HttpResponse<String> response) {
+        return HttpStatus.OK.value() != response.statusCode();
+    }
 
 
 }

@@ -10,24 +10,22 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/v1/api")
+@RequestMapping
 public class RestRequestChatEcho {
+    private static final String REST_CHAT = "/v1/api/chat";
+    private static final String REST_ECHO = "/v1/api/echo";
 
     @Autowired
     LogicChatEcho logicChatEcho;
 
-    @PostMapping("/chat")
+    @PostMapping(REST_CHAT)
     public ResponseEntity<String> forwardRequest (HttpSession session, @RequestBody String body) {
-        try {
-            return logicChatEcho.forwardRequest(session, body).oneLineJsonRespond();
-        } catch (Exception e) {
-            return (new StructResponse(e)).oneLineJsonRespond();
-        }
+        return logicChatEcho.forwardRequest(session, body).singleObjectJsonRespond();
     }
 
-    @PostMapping("/echo")
+    @PostMapping(REST_ECHO)
     public ResponseEntity<String> echoRequest (@RequestBody String input) {
-        return (new StructResponse(HttpStatus.OK, "Echo", input)).oneLineJsonRespond();
+        return (new StructResponse(HttpStatus.OK, "Echo", input)).singleObjectJsonRespond();
     }
 
 }
