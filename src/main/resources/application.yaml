@@ -7,6 +7,6 @@ spring:
   forward:
     url: "http://echo.free.beeceptor.com"
     port: 80
-  listening:
-    filepath: "/var/log/auth.log"
+  auditLog:
+    filepath: "/logs/webfront.log"
 

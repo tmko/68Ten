@@ -1,5 +1,6 @@
 package com.ten68.marketing.webfront.socket;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -20,6 +21,12 @@ public class WebSocketAudit implements WebSocketMessageBrokerConfigurer {
     public  static final String SOCKET_SUB_TOPIC = "/topic/auditEvents";
     public  static final String SOCKET_PUB_ENDPOINT = "audit";
 
+    @Autowired
+    private final LogicTailAuditLog logicTailAuditLog;
+
+    public WebSocketAudit(LogicTailAuditLog logicTailAuditLog) {
+        this.logicTailAuditLog = logicTailAuditLog;
+    }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
@@ -32,10 +39,10 @@ public class WebSocketAudit implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint(SOCKET_URI);
     }
 
-
     @MessageMapping(WebSocketAudit.SOCKET_PUB_ENDPOINT)
     @SendTo(WebSocketAudit.SOCKET_SUB_TOPIC)
     public StructMessage process(StructMessage message) throws Exception {
+        logicTailAuditLog.process(null);
         return new StructMessage(System.currentTimeMillis(), "something here " + System.currentTimeMillis());
     }
 
