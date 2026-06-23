@@ -22,8 +22,7 @@
   <!-- Stomp for web socket -->
   <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
 
-  <script src="/chat.js"></script>
-  <script src="/auditEvent.js"></script>
+
 
 
   <style>
@@ -144,7 +143,7 @@
       <!-- VIDEO CONTAINER -->
       <div class="relative w-full aspect-video overflow-hidden rounded-3xl border border-slate-800 bg-black glow">
 
-        <video id="dashVideo" class="w-full h-full object-cover" muted preload="auto" autoplay="true" controls="true" playsinline>
+        <video id="dashVideo" class="w-full h-full object-cover" muted preload="auto" autoplay="false" controls="true" playsinline>
           <!-- The mpd source is specified within the child Source element of the video element. 
                 Source@type attribute must be set to "application/dash+xml" to be automatically used. -->
           <source src="https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd" type="application/dash+xml" />
@@ -421,6 +420,8 @@
       return { showOverlay: true, playVideo() { this.showOverlay = false; } }
     }
   </script>
+  <script src="/chat.js"></script>
+  <script src="/auditEvent.js"></script>
 
 </body>
 </html>

@@ -14,7 +14,7 @@ public class ControllorAudit {
     @MessageMapping("audit")
     @SendTo("/topic/auditEvents")
     public StructMessage process(StructMessage message) throws Exception {
-        return new StructMessage(System.currentTimeMillis(), message.message());
+        return new StructMessage(System.currentTimeMillis(), "something here " + System.currentTimeMillis());
     }
 
 }

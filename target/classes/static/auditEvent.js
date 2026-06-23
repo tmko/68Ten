@@ -1,95 +1,55 @@
-
-
-  function terminal() {
-    return {
-      lines: [],
-      ws: null,
-      maxLines: 500,
-
-
-      initTerminal() {
-        const self = this;
-        try {
-          this.ws = new WebSocket('ws://' + location.host + '/v1/websocket');
-          this.ws.onmessage = (e) => {
-            self.lines.push(e.data);
-            if (self.lines.length > self.maxLines) {
-              self.lines.splice(0, self.lines.length - self.maxLines);
-            }
-            self.$nextTick(() => {
-              const el = self.$refs.termBody;
-              if (el) el.scrollTop = el.scrollHeight;
-            });
-          };
-          this.ws.onerror = () => {
-            self.lines.push('[error] WebSocket connection failed — retrying in 5s');
-            setTimeout(() => self.initTerminal(), 5000);
-          };
-          this.ws.onclose = () => {
-            self.lines.push('[info] WebSocket closed — reconnecting in 5s');
-            setTimeout(() => self.initTerminal(), 5000);
-          };
-        } catch (err) {
-          self.lines.push('[error] ' + err.message);
-        }
-      }
-
-
-    }; // end return
-  } // end function
-
-
-
-
 function terminal() {
   return {
     lines: [],
-    ws: null,
-    stompClient: null,
+    client: null,
     maxLines: 500,
-
+    timer: null,
 
     initTerminal() {
       const self = this;
       try {
-        this.ws = new WebSocket('ws://' + location.host + '/v1/websocket');
-        this.stompClient = new StompJs.Client({ brokerURL: 'ws://' + location.host + '/gs-guide-websocket' });
+        this.client = new StompJs.Client({
+          brokerURL: 'ws://' + location.host + '/v1/websocket',
 
-        this.stompClient.onConnect = (frame) => {
-          setConnected(true);
-          console.log('Connected: ' + frame);
-          stompClient.subscribe('/topic/auditEvents', (event) => { JSON.parse(event.body).content; });
-        };
+          onConnect: () => {
+            self.client.subscribe('/topic/auditEvents', message => {
+              self.lines.push(message.body);
+              if (self.lines.length > self.maxLines) {
+                self.lines.splice(0, self.lines.length - self.maxLines);
+              }
+              self.$nextTick(() => {
+                const el = self.$refs.termBody;
+                if (el) el.scrollTop = el.scrollHeight;
+              });
+            });
 
+            self.timer = setInterval(() => {
+              self.client.publish({
+                destination: '/v1/api/audit',
+                body: JSON.stringify({ timestamp: Date.now(), message: 'pull log' })
+              });
+            }, 3000);
+          },
 
-        this.ws.onmessage = (e) => {
-          self.lines.push(e.data);
-          if (self.lines.length > self.maxLines) {
-            self.lines.splice(0, self.lines.length - self.maxLines);
-          }
-          self.$nextTick(() => {
-            const el = self.$refs.termBody;
-            if (el) el.scrollTop = el.scrollHeight;
-          });
-        };
+          onStompError: frame => {
+            self.lines.push('[error] STOMP: ' + frame.headers.message);
+          },
 
+          onWebSocketClose: () => {
+            self.lines.push('[info] disconnected — reconnecting...');
+            if (self.timer) {
+              clearInterval(self.timer);
+              self.timer = null;
+            }
+          },
 
-        this.stompClient.onWebSocketError = (error) => {
-          console.error('Error with websocket', error);
-        };
+          reconnectDelay: 5000,
+        });
 
-        this.stompClient.onStompError = (frame) => {
-          console.error('Broker reported error: ' + frame.headers['message']);
-          console.error('Additional details: ' + frame.body);
-        };
-
-
-
+        this.client.activate();
       } catch (err) {
         self.lines.push('[error] ' + err.message);
       }
     }
-
-
-  }; // end return
-} // end function
+  };
+}
