@@ -8,7 +8,7 @@
 
   <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
-      <pattern>%epoch [%thread] %-5level %logger{36} - %msg%n</pattern>
+      <pattern>%epoch [%d{ISO8601}] [%thread] %-5level %logger{36} - %msg%n</pattern>
     </encoder>
   </appender>
 
@@ -20,7 +20,7 @@
       <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
     </rollingPolicy>
     <encoder>
-      <pattern>%epoch [%thread] %-5level %logger{36} - %msg%n</pattern>
+      <pattern>%epoch %msg%n</pattern>
     </encoder>
   </appender>
 

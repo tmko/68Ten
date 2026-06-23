@@ -4,6 +4,7 @@ function terminal() {
     client: null,
     maxLines: 500,
     timer: null,
+    lastTimeStamp: Date.now(),
 
     initTerminal() {
       const self = this;
@@ -13,23 +14,39 @@ function terminal() {
 
           onConnect: () => {
             self.client.subscribe('/topic/auditEvents', message => {
-              self.lines.push(message.body);
-              if (self.lines.length > self.maxLines) {
-                self.lines.splice(0, self.lines.length - self.maxLines);
-              }
-              self.$nextTick(() => {
-                const el = self.$refs.termBody;
-                if (el) el.scrollTop = el.scrollHeight;
-              });
+                  try {
+                    const data = JSON.parse(message.body);
+                    if (Array.isArray(data)) {
+                      data.forEach(item => {
+                        if (item.message) self.lines.push(item.message);
+                        if (item.timestamp) self.lastTimeStamp = item.timestamp
+                      });
+
+                      // Maintain total line limit
+                      if (self.lines.length > self.maxLines) {
+                        self.lines.splice(0, self.lines.length - self.maxLines);
+                      }
+
+
+                      // Scroll to the bottom of the container once elements render
+                      self.$nextTick(() => {
+                        const el = self.$refs.termBody;
+                        if (el) el.scrollTop = el.scrollHeight;
+                      });
+                    }
+                  } catch (e) {
+                    console.error("Failed to parse audit message", e, message);
+                  }
             });
+
 
             self.timer = setInterval(() => {
               self.client.publish({
                 destination: '/v1/api/audit',
-                body: JSON.stringify({ timestamp: Date.now(), message: 'pull log' })
+                body: JSON.stringify({ timestamp: self.lastTimeStamp, message: 'pull log' })
               });
             }, 3000);
-          },
+          }, // close onConnect
 
           onStompError: frame => {
             self.lines.push('[error] STOMP: ' + frame.headers.message);

@@ -14,9 +14,11 @@ public record StructMessage (long timestamp, String message) implements Comparab
 
     public static StructMessage build (String msg) {
         long timestamp = checkAndParse(msg);
+        String content = msg.substring( msg.indexOf(" ") + 1 ).trim();
+
         return  timestamp < 0 ?
                 INVALID :
-                new StructMessage(timestamp, msg);
+                new StructMessage(timestamp, content);
     }
 
     private static long checkAndParse (String msg) {

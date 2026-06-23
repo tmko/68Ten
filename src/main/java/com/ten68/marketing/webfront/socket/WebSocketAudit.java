@@ -10,6 +10,8 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 
+import java.util.List;
+
 @Configuration
 @Controller
 @EnableWebSocketMessageBroker
@@ -42,7 +44,8 @@ public class WebSocketAudit implements WebSocketMessageBrokerConfigurer {
     @MessageMapping(WebSocketAudit.SOCKET_PUB_ENDPOINT)
     @SendTo(WebSocketAudit.SOCKET_SUB_TOPIC)
     public List<StructMessage> process(StructMessage message) throws Exception {
-        return logicTailAuditLog.process(StructMessage.INVALID);
+        List<StructMessage> result = logicTailAuditLog.process(message);
+        return result;
     }
 
 }
