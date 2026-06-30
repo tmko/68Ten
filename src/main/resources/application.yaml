@@ -1,12 +1,16 @@
 spring:
   application:
-    name: webfront
+    name: witLevel
   main:
     banner-mode: "off"
 
   forward:
     url: "http://echo.free.beeceptor.com"
     port: 80
+    TimeOutInSecond: 300
+
   auditLog:
-    filepath: "./logs/audit.log"
+    filepath: "./target/logs/audit.log"
+  log:
+    filepath: "./target/logs/application.log"
 

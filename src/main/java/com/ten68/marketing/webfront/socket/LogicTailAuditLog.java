@@ -42,7 +42,7 @@ public class LogicTailAuditLog {
                     .map(StructMessage::build)
                     .filter(x -> !StructMessage.INVALID.equals(x))
                     .filter(x -> x.isLater(message))
-                    .sorted(Comparator.reverseOrder())
+                    .sorted()
                     .toList();
 
         }

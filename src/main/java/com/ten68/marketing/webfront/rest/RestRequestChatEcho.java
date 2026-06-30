@@ -32,9 +32,8 @@ public class RestRequestChatEcho {
 
     @PostMapping(REST_ECHO)
     public ResponseEntity<String> echoRequest (@RequestBody String input) {
-        StructResponse response = new StructResponse(HttpStatus.OK, "Echo", input);
         log.info(AUDIT_MARKER, input);
-        return response.singleObjectJsonRespond();
+        return StructResponse.Echo(input).singleObjectJsonRespond();
     }
 
 }

@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-  <include resource="org/springframework/boot/logging/logback/defaults.xml" />
 
-  <springProperty name="LOG_FILE" source="logging.file.name" defaultValue="logs/webfront.log" />
+
+  <springProperty name="LOG_FILE" source="spring.log.filepath" defaultValue="application.log" />
+  <springProperty name="AUDIT_FILE" source="spring.auditLog.filepath" defaultValue="audit.log" />
   <springProperty name="MAX_HISTORY" source="logging.logback.rollingpolicy.max-history" defaultValue="7" />
   <springProperty name="MAX_FILE_SIZE" source="logging.logback.rollingpolicy.max-file-size" defaultValue="50MB" />
 
@@ -26,7 +27,7 @@
 
   <!-- Dedicated Audit File Appender -->
   <appender name="AUDIT_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-    <file>logs/audit.log</file>
+    <file>${AUDIT_FILE}</file>
 
     <!-- The Marker Filter Engine -->
     <filter class="ch.qos.logback.core.filter.EvaluatorFilter">

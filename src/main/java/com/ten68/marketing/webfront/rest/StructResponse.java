@@ -6,6 +6,9 @@ import org.springframework.http.ResponseEntity;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
 
 public record StructResponse (
     HttpStatus status,
@@ -22,14 +25,22 @@ public record StructResponse (
         this(HttpStatus.INTERNAL_SERVER_ERROR, "Error", e.getMessage(), e);
     }
 
+    public static StructResponse Echo (String input) {
+        return new StructResponse(HttpStatus.OK, "Echo", input);
+    }
 
     public ResponseEntity<String> singleObjectJsonRespond() {
-        String encodedValue = URLEncoder.encode(value, StandardCharsets.UTF_8);
-        String simpleSingleJSON = "{\"%s\":\"%s\"}".formatted(key,encodedValue);
+        String k = nonEmpty(key);
+        String v = nonEmpty(value);
+        String encodedValue = URLEncoder.encode(v, StandardCharsets.UTF_8);
+        String simpleSingleJSON = "{\"%s\":\"%s\"}".formatted(k,encodedValue);
         return ResponseEntity
                 .status(status)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(simpleSingleJSON);
     }
 
+    private static String nonEmpty (String s) {
+        return ( s == null || s.isBlank() ) ? "nil" : s;
+    }
 }

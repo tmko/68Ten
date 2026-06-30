@@ -12,13 +12,13 @@ public record StructMessage (long timestamp, String message) implements Comparab
         return compareTo(structMessage) > 0;
     }
 
+    // The input string is a log line, with format of  "1782805743589 hello world"
     public static StructMessage build (String msg) {
         long timestamp = checkAndParse(msg);
+        if (timestamp < 0)
+            return INVALID;
         String content = msg.substring( msg.indexOf(" ") + 1 ).trim();
-
-        return  timestamp < 0 ?
-                INVALID :
-                new StructMessage(timestamp, content);
+        return new StructMessage(timestamp, content);
     }
 
     private static long checkAndParse (String msg) {

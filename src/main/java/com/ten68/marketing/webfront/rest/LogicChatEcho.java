@@ -6,10 +6,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.io.IOException;
+import java.net.CookieManager;
 import java.net.URI;
+import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 
 @Component
 public class LogicChatEcho {
@@ -21,44 +25,55 @@ public class LogicChatEcho {
     @Value("${spring.forward.port}")
     private int forwardPort;
 
+    @Value("${spring.forward.TimeOutInSecond}")
+    private int timeOutInSecond;
 
-    private HttpClient getHttpClientFromSession (HttpSession session) {
+    //VisiableForTest
+    HttpClient getHttpClientMapToSession(HttpSession session) {
         HttpClient httpClient = (HttpClient)session.getAttribute(SESSION_HTTP_CLIENT);
-        boolean newClientNeeded = httpClient == null || httpClient.isTerminated();
 
+        boolean newClientNeeded = httpClient == null || httpClient.isTerminated();
         if (newClientNeeded) {
-            httpClient = HttpClient.newHttpClient();
+            CookieManager cookieManager = new CookieManager();
+
+            httpClient = HttpClient.newBuilder()
+                    .connectTimeout(Duration.ofSeconds(timeOutInSecond))
+                    .followRedirects(HttpClient.Redirect.ALWAYS)
+                    .cookieHandler(cookieManager)
+                    .build();
             session.setAttribute(SESSION_HTTP_CLIENT, httpClient);
         }
+
         return httpClient;
+    }
+
+    HttpResponse<String> send (HttpClient client, HttpRequest request) throws IOException, InterruptedException {
+        return client.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
 
     public StructResponse forwardRequest(HttpSession session, @RequestBody String body) {
-        final URI uri = URI.create("%s:%s".formatted(forwardUrl, forwardPort));
+
+        HttpClient client = getHttpClientMapToSession(session);
+
+        URI uri = URI.create("%s:%s".formatted(forwardUrl, forwardPort));
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(uri)
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
 
-        HttpClient client = getHttpClientFromSession(session);
-        HttpResponse<String> response = null;
 
         try {
-            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> response = send(client, request);
 
-            return isStatusOK(response) ?
+            return HttpStatus.valueOf(response.statusCode()).is2xxSuccessful() ?
                             new StructResponse(HttpStatus.OK, "Content", response.body()) :
                             new StructResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Error", response.body());
 
         } catch (Exception e) {
             return new StructResponse(e);
         }
-    }
-
-    private static boolean isStatusOK (HttpResponse<String> response) {
-        return HttpStatus.OK.value() != response.statusCode();
     }
 
 
