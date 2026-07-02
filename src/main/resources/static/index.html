@@ -179,12 +179,12 @@
         <!-- TERMINAL -->
         <div class="rounded-xl overflow-hidden border border-slate-700/60 bg-black shadow-xl" x-data="terminal()" x-init="initTerminal()">
           <div class="flex items-center gap-2 px-4 py-2.5 bg-slate-800/60 border-b border-slate-700/60">
-            <span class="w-3 h-3 rounded-full bg-red-500/80"></span>
-            <span class="w-3 h-3 rounded-full bg-yellow-500/80"></span>
-            <span class="w-3 h-3 rounded-full bg-green-500/80"></span>
+            <span title="Clear Log Window" @click="clearLines"      class="w-3 h-3 rounded-full bg-red-500/80 cursor-pointer"></span>
+            <span title="Pause Rolling" @click="pauseWebSocket"  class="w-3 h-3 rounded-full bg-yellow-500/80 cursor-pointer"></span>
+            <span title="Tail Audit Log" @click="resumeWebSocket" class="w-3 h-3 rounded-full bg-green-500/80 cursor-pointer"></span>
             <span class="ml-2 text-xs text-slate-500 font-mono">Audit Log - 0.0.0.0/v1/auditEvent</span>
           </div>
-          <div class="p-4 h-[500px] overflow-y-auto font-mono text-sm leading-relaxed terminal-scrollbar" x-ref="termBody">
+          <div class="p-4 h-[500px] overflow-y-auto font-mono text-sm leading-relaxed terminal-scrollbar relative" x-ref="termBody">
             <template x-for="(line, i) in lines" :key="i">
               <div class="whitespace-pre-wrap break-all"><span class="text-green-400" x-text="line"></span></div>
             </template>
@@ -192,6 +192,10 @@
               <span class="text-slate-600">awaiting connection...</span>
               <span class="inline-block w-2 h-4 bg-green-500/60 align-middle ml-1 pulse-glow"></span>
             </div>
+            <button x-show="showScrollButton" @click="resumeWebSocket"
+              class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 px-5 py-3 rounded-xl bg-slate-800/90 backdrop-blur-sm border border-slate-600/50 hover:bg-slate-700/90 text-sm font-mono text-slate-200 shadow-2xl transition-all hover:scale-105 whitespace-nowrap">
+              Tail Audit Log
+            </button>
           </div>
         </div>
 
