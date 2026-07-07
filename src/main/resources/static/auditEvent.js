@@ -39,7 +39,7 @@ function terminal() {
           destination: '/v1/api/audit',
           body: JSON.stringify({ timestamp: self.lastTimeStamp, message: 'pull log' })
         });
-      }, 3000);
+      },3000);
       this.$nextTick(() => this.scrollToBottom());
     },
 
@@ -79,29 +79,24 @@ function terminal() {
                     console.error("Failed to parse audit message", e, message);
                   }
             });
-
           },
 
           onStompError: frame => {
             self.lines.push('[error] STOMP: ' + frame.headers.message);
+            this.reset();
           },
 
           onWebSocketClose: () => {
             self.lines.push('[info] disconnected — reconnecting...');
-            if (self.timer) {
-              clearInterval(self.timer);
-              self.timer = null;
-            }
+            this.reset();
           },
-
-          reconnectDelay: 5000,
-        });
+        }); //StompJS.Client
 
         this.client.activate();
       } catch (err) {
         self.lines.push('[error] ' + err.message);
       }
-    }//initTerminal
+    } //initTerminal
 
   }; //return
 } //function
