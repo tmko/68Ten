@@ -5,12 +5,61 @@ function terminal() {
     maxLines: 500,
     timer: null,
     lastTimeStamp: Date.now(),
+    paused: true,
+    showScrollButton: true,
+
+    reset() {
+      this.paused = true;
+      this.showScrollButton = true;
+      if (this.timer) {
+        clearInterval(this.timer);
+        this.timer = null;
+      }
+    },
+
+
+    clearLines() {
+      this.lines = [];
+      this.reset();
+    },
+
+    pauseWebSocket() {
+      this.reset();
+    },
+
+    resumeWebSocket() {
+      this.paused = false;
+      this.showScrollButton = false;
+      const self = this;
+      if (this.timer) {
+        clearInterval(this.timer);
+      }
+      this.timer = setInterval(() => {
+        self.client.publish({
+          destination: '/v1/api/audit',
+          body: JSON.stringify({ timestamp: self.lastTimeStamp, message: 'pull log' })
+        });
+      },3000);
+      this.$nextTick(() => this.scrollToBottom());
+    },
+
+    scrollToBottom() {
+      const el = this.$refs.termBody;
+      if (el) el.scrollTop = el.scrollHeight;
+    },
 
     initTerminal() {
       const self = this;
+      this.paused = true;
+      this.showScrollButton = true;
       try {
         this.client = new StompJs.Client({
           brokerURL: 'ws://' + location.host + '/v1/websocket',
+          debug: function (str) { console.log("debug:" + str); },
+          reconnectDelay: 5000,
+          heartbeatIncoming: 4000,
+          heartbeatOutgoing: 4000,
+
 
           onConnect: () => {
             self.client.subscribe('/topic/auditEvents', message => {
@@ -27,46 +76,32 @@ function terminal() {
                         self.lines.splice(0, self.lines.length - self.maxLines);
                       }
 
-
-                      // Scroll to the bottom of the container once elements render
-                      self.$nextTick(() => {
-                        const el = self.$refs.termBody;
-                        if (el) el.scrollTop = el.scrollHeight;
-                      });
+                      if (!self.paused) {
+                        self.$nextTick(() => this.scrollToBottom());
+                      }
                     }
                   } catch (e) {
                     console.error("Failed to parse audit message", e, message);
                   }
             });
-
-
-            self.timer = setInterval(() => {
-              self.client.publish({
-                destination: '/v1/api/audit',
-                body: JSON.stringify({ timestamp: self.lastTimeStamp, message: 'pull log' })
-              });
-            }, 3000);
-          }, // close onConnect
+          },
 
           onStompError: frame => {
             self.lines.push('[error] STOMP: ' + frame.headers.message);
+            this.reset();
           },
 
           onWebSocketClose: () => {
             self.lines.push('[info] disconnected — reconnecting...');
-            if (self.timer) {
-              clearInterval(self.timer);
-              self.timer = null;
-            }
+            this.reset();
           },
-
-          reconnectDelay: 5000,
-        });
+        }); //StompJS.Client
 
         this.client.activate();
       } catch (err) {
         self.lines.push('[error] ' + err.message);
       }
-    }
-  };
-}
+    } //initTerminal
+
+  }; //return
+} //function
