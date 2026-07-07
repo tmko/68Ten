@@ -5,11 +5,10 @@ function terminal() {
     maxLines: 500,
     timer: null,
     lastTimeStamp: Date.now(),
-9    paused: true,
+    paused: true,
     showScrollButton: true,
 
-    clearLines() {
-      this.lines = [];
+    reset() {
       this.paused = true;
       this.showScrollButton = true;
       if (this.timer) {
@@ -18,30 +17,30 @@ function terminal() {
       }
     },
 
+
+    clearLines() {
+      this.lines = [];
+      this.reset();
+    },
+
     pauseWebSocket() {
-      this.paused = true;
-      this.showScrollButton = true;
-      if (this.timer) {
-        clearInterval(this.timer);
-        this.timer = null;
-      }
+      this.reset();
     },
 
     resumeWebSocket() {
       this.paused = false;
       this.showScrollButton = false;
       const self = this;
-      if (this.timer) clearInterval(this.timer);
+      if (this.timer) {
+        clearInterval(this.timer);
+      }
       this.timer = setInterval(() => {
         self.client.publish({
           destination: '/v1/api/audit',
           body: JSON.stringify({ timestamp: self.lastTimeStamp, message: 'pull log' })
         });
       }, 3000);
-      this.$nextTick(() => {
-        const el = this.$refs.termBody;
-        if (el) el.scrollTop = el.scrollHeight;
-      });
+      this.$nextTick(() => this.scrollToBottom());
     },
 
     scrollToBottom() {
@@ -67,15 +66,13 @@ function terminal() {
                         if (item.timestamp) self.lastTimeStamp = item.timestamp
                       });
 
+                      // Maintain total line limit
                       if (self.lines.length > self.maxLines) {
                         self.lines.splice(0, self.lines.length - self.maxLines);
                       }
 
                       if (!self.paused) {
-                        self.$nextTick(() => {
-                          const el = self.$refs.termBody;
-                          if (el) el.scrollTop = el.scrollHeight;
-                        });
+                        self.$nextTick(() => this.scrollToBottom());
                       }
                     }
                   } catch (e) {
@@ -104,6 +101,7 @@ function terminal() {
       } catch (err) {
         self.lines.push('[error] ' + err.message);
       }
-    }
-  };
-}
+    }//initTerminal
+
+  }; //return
+} //function
