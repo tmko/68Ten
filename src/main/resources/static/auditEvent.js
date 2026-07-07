@@ -55,6 +55,11 @@ function terminal() {
       try {
         this.client = new StompJs.Client({
           brokerURL: 'ws://' + location.host + '/v1/websocket',
+          debug: function (str) { console.log("debug:" + str); },
+          reconnectDelay: 5000,
+          heartbeatIncoming: 4000,
+          heartbeatOutgoing: 4000,
+
 
           onConnect: () => {
             self.client.subscribe('/topic/auditEvents', message => {
